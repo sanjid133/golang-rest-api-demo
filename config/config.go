@@ -8,9 +8,10 @@ import (
 
 // Application holds application configurations
 type Application struct {
-	Host  string `yaml:"host"`
-	Port  int    `yaml:"port"`
-	Mongo Mongo  `yaml:"mongo"`
+	Host            string `yaml:"host"`
+	Port            int    `yaml:"port"`
+	Mongo           Mongo  `yaml:"mongo"`
+	GracefulTimeout int    `yaml:"graceful_timeout"`
 }
 
 // Mongo holds mongodb configurations

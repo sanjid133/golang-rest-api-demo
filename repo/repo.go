@@ -2,12 +2,11 @@ package repo
 
 type Repo interface {
 	Name() string
-	EnsureIndices() error
-	DropIndices() error
 }
 
 const (
 	repoUser = "User"
+	repoTag  = "Tag"
 )
 
 const (

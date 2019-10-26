@@ -11,3 +11,15 @@ services:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: secret
 
+  user:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: sanjid133/user:v1
+    command: serve -c "/etc/config.yaml"
+    ports:
+      - 8000:8000
+    depends_on:
+      - mongo
+    volumes:
+      - ./config.yaml:/etc/config.yaml

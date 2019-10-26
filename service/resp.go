@@ -1,10 +1,20 @@
 package service
 
-type respPostUsers struct {
+type RespPostUsers struct {
 	ID string `json:"id"`
 }
 
-type respGetUser struct {
+type RespGetUser struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`
+}
+
+type RespTagUser struct {
+	ID   string   `json:"id"`
+	Name string   `json:"name"`
+	Tags []string `json:"tags"`
+}
+
+type RespUsers struct {
+	Users []RespTagUser `json:"users"`
 }

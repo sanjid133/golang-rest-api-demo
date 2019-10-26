@@ -35,7 +35,7 @@ func (s *Service) PostUsers(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	resp := respPostUsers{
+	resp := RespPostUsers{
 		ID: usrMdl.ID,
 	}
 	json.NewEncoder(w).Encode(resp)
@@ -48,20 +48,26 @@ func (s *Service) GetUser(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, errors.Errorf("id is requried").Error(), http.StatusBadRequest)
 		return
 	}
-	usr, err := s.usrRepo.Get(params["id"])
+	userID := params["id"]
+
+	usr, err := s.usrRepo.Get(userID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	if usr == nil {
-		http.Error(w, errors.Errorf("User not found with id %v", params["id"]).Error(), http.StatusBadRequest)
+		http.Error(w, errors.Errorf("User not found with id %v", userID).Error(), http.StatusBadRequest)
 		return
 	}
-	resp := respGetUser{
+	resp := RespGetUser{
 		ID:   usr.ID,
-		Name: fmt.Sprintf("%s %s", usr.FirstName, usr.LastName),
+		Name: fullName(usr.FirstName, usr.LastName),
 	}
 	json.NewEncoder(w).Encode(resp)
+}
+
+func fullName(fn, ln string) string {
+	return fmt.Sprintf("%s %s", fn, ln)
 }
 
 func SetPassword(u *model.User, pass string) error {

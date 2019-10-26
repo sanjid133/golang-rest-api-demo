@@ -5,6 +5,8 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sanjid133/rest-user-store/model"
 	"github.com/sanjid133/rest-user-store/util"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
 	"time"
 
 	"github.com/sanjid133/rest-user-store/database"
@@ -17,6 +19,7 @@ type User interface {
 
 	Add(v *model.User) error
 	Get(id string) (*model.User, error)
+	ListUsers(IDs []string) ([]model.User, error)
 	//Update(id string, v *model.User) error
 }
 
@@ -97,21 +100,6 @@ func (r *MgoUser) Name() string {
 	return repoUser
 }
 
-/*// Indices returns mongo database indexes for MgoUser
-func (r *MgoUser) Indices() []mongo.Index {
-	return []mongo.Index{}
-}
-*/
-// EnsureIndices ensures indices in database
-func (r *MgoUser) EnsureIndices() error {
-	return nil
-}
-
-// DropIndices drops indices from database
-func (r *MgoUser) DropIndices() error {
-	return nil
-}
-
 // Add adds a new user to the repository
 func (r *MgoUser) Add(v *model.User) error {
 	bUser, err := prepareBsonUser(v)
@@ -161,8 +149,48 @@ func (r *MgoUser) Get(id string) (*model.User, error) {
 	}
 
 	if err := row.Err(); err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, nil
+		}
 		return nil, err
 	}
 
 	return formUser(&usr), nil
+}
+
+func (r *MgoUser) ListUsers(IDs []string) ([]model.User, error) {
+	usrIds := []primitive.ObjectID{}
+	for _, id := range IDs {
+		objID, err := primitive.ObjectIDFromHex(id)
+		if err != nil {
+			return nil, errors.Errorf("Invalid id", id)
+		}
+		usrIds = append(usrIds, objID)
+	}
+
+	query := bson.M{
+		"_id": bson.M{
+			"$in": usrIds,
+		},
+	}
+	rows, err := r.db.Find(context.Background(), r.table, query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	respUsers := []model.User{}
+	for rows.Next() {
+		bUser := bsonUser{}
+		if err := rows.Scan(&bUser); err != nil {
+			return nil, err
+		}
+		respUsers = append(respUsers, *formUser(&bUser))
+
+	}
+	if rows.Err(); err != nil {
+		return nil, err
+	}
+	return respUsers, nil
+
 }

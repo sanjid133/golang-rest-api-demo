@@ -31,7 +31,6 @@ func serve(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	fmt.Println(cfg)
 
 	mgo, err := database.NewClient(cfg.Mongo.URI, cfg.Mongo.Database)
 	if err != nil {
@@ -39,8 +38,9 @@ func serve(cmd *cobra.Command, args []string) error {
 	}
 
 	usrRepo := repo.NewMgoUser("users", mgo)
+	tagRepo := repo.NewMgoTag("tags", mgo)
 
-	svc := service.NewService(usrRepo)
+	svc := service.NewService(usrRepo, tagRepo)
 	r := svc.Route()
 
 	addr := fmt.Sprintf("%s:%d", cfg.Host, cfg.Port)
@@ -52,6 +52,7 @@ func serve(cmd *cobra.Command, args []string) error {
 	}
 
 	go func() {
+		log.Println("Staring server with address ", addr)
 		if err := srv.ListenAndServe(); err != nil {
 			log.Println("Failed to listen and serve", err)
 		}
@@ -64,9 +65,8 @@ func serve(cmd *cobra.Command, args []string) error {
 
 	// Block until we receive our signal.
 	<-c
-	wait := 1 * time.Second
 	// Create a deadline to wait for.
-	ctx, cancel := context.WithTimeout(context.Background(), wait)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(cfg.GracefulTimeout)*time.Second)
 	defer cancel()
 	// Doesn't block if no connections, but will otherwise wait
 	// until the timeout deadline.

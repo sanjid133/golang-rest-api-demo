@@ -6,10 +6,12 @@ import (
 
 type Service struct {
 	usrRepo repo.User
+	tagRepo repo.Tag
 }
 
-func NewService(usr *repo.MgoUser) *Service {
+func NewService(usr *repo.MgoUser, tag *repo.MgoTag) *Service {
 	return &Service{
 		usrRepo: usr,
+		tagRepo: tag,
 	}
 }

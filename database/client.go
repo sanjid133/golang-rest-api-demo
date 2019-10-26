@@ -68,3 +68,23 @@ func (r *Row) Err() error {
 	defer r.mu.RUnlock()
 	return r.err
 }
+
+type Rows struct {
+	c *mongo.Cursor
+}
+
+func (r *Rows) Next() bool {
+	return r.c.Next(context.TODO())
+}
+
+func (r *Rows) Close() error {
+	return r.c.Close(context.TODO())
+}
+
+func (r *Rows) Err() error {
+	return r.c.Err()
+}
+
+func (r *Rows) Scan(v interface{}) error {
+	return r.c.Decode(v)
+}
