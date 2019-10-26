@@ -8,17 +8,16 @@ import (
 
 // Application holds application configurations
 type Application struct {
-	Host string `yaml:"host"`
-	Port int `yaml:"port"`
-	Mongo Mongo `yaml:"mongo"`
+	Host  string `yaml:"host"`
+	Port  int    `yaml:"port"`
+	Mongo Mongo  `yaml:"mongo"`
 }
 
 // Mongo holds mongodb configurations
 type Mongo struct {
-	URI string `yaml:"uri"`
+	URI      string `yaml:"uri"`
 	Database string `yaml:"database"`
 }
-
 
 // Load loads config from path
 func Load(path string) (*Application, error) {

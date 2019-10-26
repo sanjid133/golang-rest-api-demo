@@ -2,24 +2,31 @@ package model
 
 import "time"
 
+const (
+	AlgoSha256 = "sha256"
+)
+
 type User struct {
-	ID string
+	ID        string
 	FirstName string
-	LastName string
-	Password string
-	Tags []Tag
+	LastName  string
+	PassHash  []byte
+	PassSalt  []byte
+	PassIter  int
+	PassAlgo  string
+	Tags      []Tag
 
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
 
 type Tag struct {
-	Tag string
+	Tag      string
 	ExpireAt time.Time
 }
 
 type PostUser struct {
 	FirstName string `json:"firstName"`
-	LastName string `json:"lastName"`
-	Password string `json:"password"`
+	LastName  string `json:"lastName"`
+	Password  string `json:"password"`
 }

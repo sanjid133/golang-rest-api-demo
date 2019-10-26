@@ -7,10 +7,8 @@ import (
 	"github.com/sanjid133/rest-user-store/util"
 	"time"
 
-
 	"github.com/sanjid133/rest-user-store/database"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-
 )
 
 // User interface represents the user repository
@@ -24,14 +22,17 @@ type User interface {
 
 // bsonUser holds bson User
 type bsonUser struct {
-	ID               primitive.ObjectID `bson:"_id"`
-	FirstName string `bson:"first_name"`
-	LastName string `bson:"last_name"`
-	Password string `bson:"password"`
+	ID        primitive.ObjectID `bson:"_id"`
+	FirstName string             `bson:"first_name"`
+	LastName  string             `bson:"last_name"`
+	PassHash  []byte             `bson:"pass_hash"`
+	PassSalt  []byte             `bson:"pass_salt"`
+	PassIter  int                `bson:"pass_iter"`
+	PassAlgo  string             `bson:"pass_algo"`
 	//Tags []Tag
 
-	CreatedAt        time.Time          `bson:"created_at"`
-	UpdatedAt        time.Time          `bson:"updated_at"`
+	CreatedAt time.Time `bson:"created_at"`
+	UpdatedAt time.Time `bson:"updated_at"`
 }
 
 // Valid checks if a bsonUser is valid
@@ -43,9 +44,13 @@ func (u *bsonUser) valid() (bool, error) {
 func prepareBsonUser(u *model.User) (*bsonUser, error) {
 	usr := bsonUser{
 		FirstName: u.FirstName,
-		LastName: u.LastName,
-		CreatedAt:        u.CreatedAt,
-		UpdatedAt:        u.UpdatedAt,
+		LastName:  u.LastName,
+		PassHash:  u.PassHash,
+		PassSalt:  u.PassSalt,
+		PassIter:  u.PassIter,
+		PassAlgo:  u.PassAlgo,
+		CreatedAt: u.CreatedAt,
+		UpdatedAt: u.UpdatedAt,
 	}
 	if u.ID != "" {
 		id, err := primitive.ObjectIDFromHex(u.ID)
@@ -60,11 +65,15 @@ func prepareBsonUser(u *model.User) (*bsonUser, error) {
 // formUser forms a model user from bson user
 func formUser(u *bsonUser) *model.User {
 	return &model.User{
-		ID:               u.ID.Hex(),
+		ID:        u.ID.Hex(),
 		FirstName: u.FirstName,
-		LastName: u.LastName,
-		CreatedAt:        u.CreatedAt,
-		UpdatedAt:        u.UpdatedAt,
+		LastName:  u.LastName,
+		PassHash:  u.PassHash,
+		PassSalt:  u.PassSalt,
+		PassIter:  u.PassIter,
+		PassAlgo:  u.PassAlgo,
+		CreatedAt: u.CreatedAt,
+		UpdatedAt: u.UpdatedAt,
 	}
 }
 
@@ -122,7 +131,7 @@ func (r *MgoUser) Add(v *model.User) error {
 		return errors.Errorf(repoUser, err)
 	}
 
-	if _, err := r.db.Insert(context.Background(),r.table, bUser); err != nil {
+	if _, err := r.db.Insert(context.Background(), r.table, bUser); err != nil {
 		return err
 	}
 
@@ -152,7 +161,7 @@ func (r *MgoUser) Get(id string) (*model.User, error) {
 	}
 
 	if err := row.Err(); err != nil {
-		return nil, errors.PrepareDocumentError(err)
+		return nil, err
 	}
 
 	return formUser(&usr), nil

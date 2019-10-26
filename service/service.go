@@ -8,7 +8,7 @@ type Service struct {
 	usrRepo repo.User
 }
 
-func NewService(usr *repo.MgoUser) *Service  {
+func NewService(usr *repo.MgoUser) *Service {
 	return &Service{
 		usrRepo: usr,
 	}

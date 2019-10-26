@@ -12,5 +12,5 @@ const (
 
 const (
 	msgIsRequired = "is required"
-	msgIsInvalid = "is invalid"
+	msgIsInvalid  = "is invalid"
 )

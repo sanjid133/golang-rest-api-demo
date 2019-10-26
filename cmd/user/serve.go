@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/gorilla/mux"
 	"github.com/sanjid133/rest-user-store/config"
 	"github.com/sanjid133/rest-user-store/database"
 	"github.com/sanjid133/rest-user-store/repo"
@@ -17,16 +16,16 @@ import (
 )
 
 var serveCmd = &cobra.Command{
-	Use: "serve",
+	Use:   "serve",
 	Short: "serve serves the server",
-	RunE: serve,
+	RunE:  serve,
 }
 
-func init()  {
+func init() {
 	serveCmd.PersistentFlags().StringVarP(&cfgPath, "config", "c", "config.yaml", "config file path")
 }
 
-func serve(cmd *cobra.Command, args []string) error  {
+func serve(cmd *cobra.Command, args []string) error {
 	// load the config
 	cfg, err := config.Load(cfgPath)
 	if err != nil {
@@ -46,10 +45,10 @@ func serve(cmd *cobra.Command, args []string) error  {
 
 	addr := fmt.Sprintf("%s:%d", cfg.Host, cfg.Port)
 	srv := &http.Server{
-		Addr: addr,
+		Addr:         addr,
 		WriteTimeout: time.Second * 15,
-		ReadTimeout: time.Second * 15,
-		Handler: r,
+		ReadTimeout:  time.Second * 15,
+		Handler:      r,
 	}
 
 	go func() {
@@ -65,7 +64,7 @@ func serve(cmd *cobra.Command, args []string) error  {
 
 	// Block until we receive our signal.
 	<-c
-	wait := 30 * time.Second
+	wait := 1 * time.Second
 	// Create a deadline to wait for.
 	ctx, cancel := context.WithTimeout(context.Background(), wait)
 	defer cancel()
@@ -77,5 +76,5 @@ func serve(cmd *cobra.Command, args []string) error  {
 	// to finalize based on context cancellation.
 	log.Println("shutting down")
 	os.Exit(0)
-
+	return nil
 }
