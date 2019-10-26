@@ -1,0 +1,81 @@
+package main
+
+import (
+	"context"
+	"fmt"
+	"github.com/gorilla/mux"
+	"github.com/sanjid133/rest-user-store/config"
+	"github.com/sanjid133/rest-user-store/database"
+	"github.com/sanjid133/rest-user-store/repo"
+	"github.com/sanjid133/rest-user-store/service"
+	"github.com/spf13/cobra"
+	"log"
+	"net/http"
+	"os"
+	"os/signal"
+	"time"
+)
+
+var serveCmd = &cobra.Command{
+	Use: "serve",
+	Short: "serve serves the server",
+	RunE: serve,
+}
+
+func init()  {
+	serveCmd.PersistentFlags().StringVarP(&cfgPath, "config", "c", "config.yaml", "config file path")
+}
+
+func serve(cmd *cobra.Command, args []string) error  {
+	// load the config
+	cfg, err := config.Load(cfgPath)
+	if err != nil {
+		return err
+	}
+	fmt.Println(cfg)
+
+	mgo, err := database.NewClient(cfg.Mongo.URI, cfg.Mongo.Database)
+	if err != nil {
+		return err
+	}
+
+	usrRepo := repo.NewMgoUser("users", mgo)
+
+	svc := service.NewService(usrRepo)
+	r := svc.Route()
+
+	addr := fmt.Sprintf("%s:%d", cfg.Host, cfg.Port)
+	srv := &http.Server{
+		Addr: addr,
+		WriteTimeout: time.Second * 15,
+		ReadTimeout: time.Second * 15,
+		Handler: r,
+	}
+
+	go func() {
+		if err := srv.ListenAndServe(); err != nil {
+			log.Println("Failed to listen and serve", err)
+		}
+	}()
+
+	c := make(chan os.Signal, 1)
+	// We'll accept graceful shutdowns when quit via SIGINT (Ctrl+C)
+	// SIGKILL, SIGQUIT or SIGTERM (Ctrl+/) will not be caught.
+	signal.Notify(c, os.Interrupt)
+
+	// Block until we receive our signal.
+	<-c
+	wait := 30 * time.Second
+	// Create a deadline to wait for.
+	ctx, cancel := context.WithTimeout(context.Background(), wait)
+	defer cancel()
+	// Doesn't block if no connections, but will otherwise wait
+	// until the timeout deadline.
+	srv.Shutdown(ctx)
+	// Optionally, you could run srv.Shutdown in a goroutine and block on
+	// <-ctx.Done() if your application should wait for other services
+	// to finalize based on context cancellation.
+	log.Println("shutting down")
+	os.Exit(0)
+
+}

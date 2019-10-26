@@ -1,0 +1,5 @@
+host: ""
+port: 8000
+mongo:
+  uri: "mongodb://root:secret@mongo:27017"
+  database: "user"
