@@ -4,6 +4,8 @@ type RespPostUsers struct {
 	ID string `json:"id"`
 }
 
+type RespPostTag struct {}
+
 type RespGetUser struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`

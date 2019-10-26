@@ -47,6 +47,8 @@ func (s *Service) PostTags(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
+	resp := RespPostTag{}
+	json.NewEncoder(w).Encode(resp)
 
 }
 
